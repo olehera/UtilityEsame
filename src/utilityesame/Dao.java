@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Rotta;
@@ -243,17 +244,46 @@ public class Dao {
 		
 		return centrale;
 	}
-
 	
-	while (rs.next()) {
-		Airport partenza = aIdMap.get(rs.getInt("id1"));
-		Airport destinazione = aIdMap.get(rs.getInt("id2"));
+	public List<> confinanti(Map<K, V> idMap) {
 		
-		if (partenza == null || destinazione == null) {
-			throw new RuntimeException("partenza o destinazione non trovata");
+		String sql = "SELECT e1.neighborhood_id AS id1, e2.neighborhood_id AS id2, COUNT(*) AS peso " + 
+				     "FROM events e1, events e2, confinanti c " + 
+				     "WHERE e1.neighborhood_id = c.neighbor1 AND e2.neighborhood_id = c.neighbor2 " + 
+				     "AND YEAR(e1.reported_date) = ? AND e1.offense_category_id = ? " + 
+				     "YEAR(e1.reported_date) = YEAR(e2.reported_date) AND e1.offense_category_id = e2.offense_category_id " +
+				     "GROUP BY e1.neighborhood_id, e2.neighborhood_id ";
+		
+		List<> list = new ArrayList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, );
+			st.setInt(2, );
+			
+			ResultSet res = st.executeQuery();
+			
+			while (rs.next()) {
+				 primo = IdMap.get(rs.getInt("id1"));
+				 secondo = IdMap.get(rs.getInt("id2"));
+				
+				if (primo == null || secondo == null) {
+					throw new RuntimeException("partenza o destinazione non trovata");
+				}
+				
+				list.add(new (primo, secondo, rs.getDouble("peso")));
+			}
+			
+			conn.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
-		result.add(new Rotta(partenza, destinazione, rs.getDouble("avgg")));
+		return list;
 	}
 
 }
